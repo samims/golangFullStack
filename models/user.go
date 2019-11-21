@@ -222,7 +222,7 @@ func FindAllPosts(db *gorm.DB) (*[]Post, error) {
 		for i, _ := range posts {
 			err := db.Debug().Model(&User{}).Where("id = ?", posts[i].AuthorID).Take(&posts[i].Author).Error
 			if err != nil {
-				return &[]Post, err
+				return &[]Post{}, err
 			}
 		}
 	}
@@ -232,7 +232,7 @@ func FindAllPosts(db *gorm.DB) (*[]Post, error) {
 
 func (p *Post) FindPostByID(db *gorm.DB, pid int64) (*Post, error) {
 	var err error
-	err = db.Debug().Model(&Post{}).Where("id = ?", pid).Take(*p.Author).Error
+	err = db.Debug().Model(&Post{}).Where("id = ?", pid).Take(&p.Author).Error
 	if err != nil {
 		if err != nil {
 			return &Post{}, err
@@ -262,10 +262,10 @@ func (p *Post) UpdatePost(db *gorm.DB) (*Post, error) {
 	return p, nil
 }
 
-func (p *Post)  DeleteAPost(db *gorm.DB, pid uint64, uid uint32) (int64, error){
+func (p *Post) DeleteAPost(db *gorm.DB, pid uint64, uid uint32) (int64, error) {
 	db = db.Model(&Post{}).Where("id = ? and author_id = ?", pid, uid).Take(&Post{}).Delete(&Post{})
-	if db.Error != nil{
-		if gorm.IsRecordNotFoundError(db.Error){
+	if db.Error != nil {
+		if gorm.IsRecordNotFoundError(db.Error) {
 			return 0, errors.New("post not found")
 		}
 		return 0, db.Error
